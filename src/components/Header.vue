@@ -3,7 +3,6 @@
         <nav>
             <RouterLink to="/">Home</RouterLink>
             <RouterLink to="/orders">Shopping Cart</RouterLink>
-            <!-- <RouterLink to="/about">About</RouterLink> -->
         </nav>
     </header>
 
