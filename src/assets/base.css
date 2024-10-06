@@ -91,4 +91,108 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  &:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  &>dialog[open] {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 0;
+    border-radius: 1rem;
+
+    &::backdrop {
+        background: rgba(0, 0, 0, 0.75);
+    }
+
+    &.product {
+      display: flex;
+      flex-direction: row;
+      background-color: var(--color-background-mute);
+
+      &>button.close {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        width: 50px;
+        height: 50px;
+        background-color: var(--color-background-soft);
+        border: none;
+        border-radius: 50%;
+        opacity: 0.75;
+        transition: opacity 0.1s;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 1;
+        }
+      }
+
+      &>img {
+        width: min(500px, 35vw);
+        object-fit: contain;
+        aspect-ratio: 1;
+      }
+
+      &>div.container {
+        display: flex;
+        flex-direction: column;
+        width: max(500px, 35vw);
+        padding: 0 2rem;
+        color: var(--color-text);
+        
+        &>h3 {
+          font-size: 2rem;
+          color: var(--color-heading);
+        }
+
+        &>p {
+          display: flex;
+          align-self: flex-start;
+          font-size: 1rem;
+          white-space: pre-wrap;
+          
+          &.price {
+            margin: 1rem 0 0;
+            text-decoration: line-through;
+            opacity: 0.5;
+          }
+
+          &.description {
+              display: flex;
+              position: relative;
+              width: 100%;
+          }
+        }
+
+        &>div {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: start;
+          margin: 0 0 1rem 0;
+
+          &>p.discount {
+            display: flex;
+            align-self: end;
+            justify-content: center;
+            margin: 0 0.5rem 0 0;
+            color: rgb(0, 209, 0);
+            font-size: 1.75rem;
+            line-height: 1;
+          }
+
+          &>h4 {
+            font-size: 2.125rem;
+            font-weight: bold;
+            line-height: 1;
+            color: var(--accent-color);
+          }
+        }
+      }
+    }
+  }
 }

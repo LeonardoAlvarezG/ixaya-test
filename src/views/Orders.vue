@@ -2,12 +2,12 @@
     <section class="section">
         <aside>
             <nav>
-                <span><button>Shopping Cart</button></span>
-                <span><button>My Purchases</button></span>
+                <span><a href="#shopping_cart" >Carrito de Compras</a></span>
+                <span><a href="#orders" >Mis Pedidos</a></span>
             </nav>
         </aside>
         <div>
-            <section>
+            <section id="shopping_cart" >
                 <h1>Carrito de Compras</h1>
                 <OrderPreview :bought="false" />
                 <div>
@@ -17,7 +17,7 @@
                 </div>
             </section>
             <hr>
-            <section>
+            <section id="orders" >
                 <h1>Mis Pedidos</h1>
                 <ul v-if="orders.length">
                     <OrderPreview v-for="order in orders" :key="order" :order="order" :bought="true" />
@@ -103,12 +103,45 @@
             &>nav {
                 display: flex;
                 flex-direction: column;
+                flex-grow: 1;
+                padding: 2rem;
+                min-width: 254px;
+                width: 254px;
+                font-size: 1rem;
+
+                & a {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: start;
+                    width: 100%;
+                    height: 36px;
+                    border: 0;
+                    border-radius: 0.125rem;
+                    color: var(--color-text);
+                    background-color: transparent;
+
+                    &:hover {
+                        background-color: var(--color-background-shadow);
+                    }
+                }
             }
         }
 
         &>div {
             display: flex;
             flex-direction: column;
+            flex-grow: 1;
+            padding: 2rem;
+
+            &>section {
+                &>h1 {
+                    font-size: 2rem;
+                    color: var(--color-heading);
+                    font-weight: bold;
+                    transition: color 0.5s;
+                }
+            }
         }
     }
 </style>

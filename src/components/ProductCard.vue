@@ -1,8 +1,4 @@
 <template>
-    <!-- <div>
-        <h2>{{ product?.title }}</h2>
-        <textarea>{{ product?.description }}</textarea>
-    </div> -->
     <li>
         <div class="card">
             <button class="addShoppingCart" >
@@ -11,8 +7,12 @@
             <img :src=product?.image_url :alt=product?.title loading="lazy" decoding="async" >
             <div class="container">
                 <h3>{{ product?.title }}</h3>
-                <p class="price">${{ productPrice }}</p>
-                <h4>${{ productSalePrice }}</h4>
+                <p v-if="Number(product?.discount) > 0" class="price">${{ productPrice }}</p>
+                <div>
+                    <p v-if="Number(product?.discount) > 0" class="discount" >{{ productDiscount }}</p>
+                    <h4 v-if="Number(product?.discount) > 0" >${{ productSalePrice }}</h4>
+                    <h4 v-else >${{ productPrice }}</h4>
+                </div>
                 <p  class="description" :show="isDetailsShown">{{ product?.description }}</p>
             </div>
             <button @click="toggleDetails">Detalles</button>
@@ -24,21 +24,30 @@
     import { ref, onMounted } from "vue"
     import AddShoppingCart from './icons/AddShoppingCart.vue';
 
-    let productPrice = ref(null)
-    let productSalePrice = ref(null)
-    let isDetailsShown = ref(false)
+    const productPrice = ref(null)
+    const productSalePrice = ref(null)
+    const productDiscount = ref(null)
+    const isDetailsShown = ref(false)
 
     onMounted(() => {
         productPrice.value = Number(props.product?.price).toLocaleString('es-MX')
         productSalePrice.value = (Number(props.product?.price) - Number(props.product?.discount)).toLocaleString('es-MX')
+        productDiscount.value = `-${Math.floor(Number(props.product?.discount) * 100 / Number(props.product?.price))}%`
     })
-
+    
     const props = defineProps({
-        product: Object
+        product: Object,
+        large: Boolean
     })
 
+    const emits = defineEmits(['openModal'])
+    
     function toggleDetails() {
-        isDetailsShown.value = !isDetailsShown.value
+        if ( props.large ) {
+            emits('openModal', props.product)
+        } else {
+            isDetailsShown.value = !isDetailsShown.value
+        }
     }
 </script>
 
@@ -121,10 +130,28 @@
                     }
                 }
 
-                &>h4 {
-                    font-size: 1.125rem;
-                    font-weight: bold;
-                    color: var(--accent-color);
+                &>div {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: start;
+
+                    &>p.discount {
+                        display: flex;
+                        align-self: end;
+                        justify-content: center;
+                        margin: 0 0.5rem 0 0;
+                        color: rgb(0, 209, 0);
+                        font-size: 1rem;
+                        line-height: 1;
+                    }
+
+                    &>h4 {
+                        font-size: 1.25rem;
+                        font-weight: bold;
+                        line-height: 1;
+                        color: var(--accent-color);
+                    }
                 }
             }
 
@@ -152,15 +179,15 @@
 
                 &.addShoppingCart {
                     position: absolute;
-                    right: 0;
-                    top: 0;
+                    right: 0.5rem;
+                    top: 0.5rem;
                     width: 50px;
                     height: 50px;
                     background-color: var(--color-background-soft);
                     border: none;
                     border-radius: 50%;
-                    opacity: 0.65;
-                    transition: opacity 0.2s;
+                    opacity: 0.75;
+                    transition: opacity 0.1s;
 
                     &:hover {
                         opacity: 1;

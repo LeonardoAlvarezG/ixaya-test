@@ -1,32 +1,54 @@
 <template>
     <section class="section">
         <nav>
-            <span><button @click="SetDepartment('all')">Todos los departamentos</button></span>
+            <span><button @click="SetDepartment('all', $event)" >Todos los departamentos</button></span>
             <ul>
                 <li v-for="department in departments" :key="department">
-                    <button @click="SetDepartment(department)">{{ department }}</button>
+                    <button @click="SetDepartment(department, $event)" >{{ department }}</button>
                 </li>
             </ul>
         </nav>
-        <h1>Productos</h1>
         <section>
-            <h2>Todos los departamentos</h2>
+            <teleport to='body' >
+                <dialog ref="dialogProduct" class="product" >
+                    <button @click="HideModal" class="close" ><Close /></button>
+                    <img :src=productModal?.image_url :alt=productModal?.title loading="lazy" decoding="async" >
+                    <div class="container">
+                        <h3>{{ productModal?.title }}</h3>
+                        <p class="price">${{ productPrice }}</p>
+                        <div>
+                            <p class="discount" >{{ productDiscount }}</p>
+                            <h4>${{ productSalePrice }}</h4>
+                        </div>
+                        <p  class="description" >{{ productModal?.description }}</p>
+                    </div>
+                </dialog>
+            </teleport>
+            <h1>Productos</h1>
+            <h2>{{ departmentSelected }}</h2>
             <ul id="products">
-                <ProductCard v-for="product in products" :key="product" :product="product"/>
+                <ProductCard v-for="product in products" :key="product" :product="product" :large="true" @openModal="ShowModal" />
             </ul>
         </section>
     </section>
 </template>
 
 <script setup>
-    import { ref, onMounted } from "vue"
+    import { ref, onMounted, useTemplateRef } from "vue"
     import axios from "axios"
     import ProductCard from '../components/ProductCard.vue'
+    import Close from "@/components/icons/Close.vue";
 
-    let products = ref([])
-    let departments = ref(new Set())
-    let searchParams = ref(new URLSearchParams(window.location.search))
+    const products = ref([])
+    const departments = ref(new Set())
+    const searchParams = ref(new URLSearchParams(window.location.search))
     let productList
+    const dialogProduct = ref(null)
+    const productModal = ref({})
+    const productPrice = ref(null)
+    const productSalePrice = ref(null)
+    const productDiscount = ref(null)
+    const departmentSelected = ref("Todos los departamentos")
 
     onMounted(() => {
         axios.get(
@@ -63,13 +85,26 @@
         }
     }
 
-    function SetDepartment(departmentName) {
+    function SetDepartment(departmentName, event) {
         searchParams.value.set("department", departmentName)
-        searchParams.value.values().forEach(value => {
-            console.info(value)
-        });
+
+        departmentSelected.value = event.target.innerText
 
         ShowProducts(searchParams.value.get("department"))
+    }
+
+    function ShowModal( product ) {
+        // console.info(product)
+        productModal.value = product
+        productPrice.value = Number(productModal.value?.price).toLocaleString('es-MX')
+        productSalePrice.value = (Number(productModal.value?.price) - Number(productModal.value?.discount)).toLocaleString('es-MX')
+        productDiscount.value = `-${Math.floor(Number(productModal.value?.discount) * 100 / Number(productModal.value?.price))}%`
+        dialogProduct.value.showModal()
+    }
+    
+    function HideModal() {
+        dialogProduct.value.close()
+
     }
 </script>
 
@@ -83,26 +118,64 @@
             display: flex;
             flex-direction: column;
             padding: 2rem;
+            min-width: 254px;
             width: 254px;
             font-size: 1rem;
-
+            
             &>ul {
                 position: relative;
                 display: flex;
                 flex-direction: column;
                 width: 100%;
                 padding: 0 0 0 1.5rem;
-
+                
                 &>li {
                     display: flex;
                     /* height: 36px; */
                 }
             }
-
+            
             & button {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: start;
+                width: 100%;
                 height: 36px;
                 border: 0;
                 border-radius: 0.125rem;
+                color: var(--color-text);
+                background-color: transparent;
+
+                &:hover {
+                    background-color: var(--color-background-shadow);
+                }
+            }
+        }
+
+        &>section {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 2rem;
+
+            &>h1 {
+                font-size: 2rem;
+                color: var(--color-heading);
+                font-weight: bold;
+                transition: color 0.5s;
+            }
+
+            &>h2 {
+                font-size: 1.5rem;
+            }
+
+            &>ul {
+                display: flex;
+                justify-content: space-between;
+                padding: 1rem 0 0;
+                flex-wrap: wrap;
+                gap: 1rem;
             }
         }
     }
