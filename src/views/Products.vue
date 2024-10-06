@@ -76,6 +76,34 @@
 <style scoped>
     section.section {
         display: flex;
+        flex-direction: row;
         flex-grow: 1;
+
+        &>nav {
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            width: 254px;
+            font-size: 1rem;
+
+            &>ul {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                padding: 0 0 0 1.5rem;
+
+                &>li {
+                    display: flex;
+                    /* height: 36px; */
+                }
+            }
+
+            & button {
+                height: 36px;
+                border: 0;
+                border-radius: 0.125rem;
+            }
+        }
     }
 </style>

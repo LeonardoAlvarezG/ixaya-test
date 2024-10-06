@@ -94,6 +94,7 @@
     section.section {
         display: flex;
         flex-grow: 1;
+        padding: 1rem 2rem;
 
         &>aside {
             display: flex;
