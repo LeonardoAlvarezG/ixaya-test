@@ -26,7 +26,7 @@
             </teleport>
             <h1>Productos</h1>
             <h2>{{ departmentSelected }}</h2>
-            <ul id="products">
+            <ul>
                 <ProductCard v-for="product in products" :key="product" :product="product" :large="true" @openModal="ShowModal" />
             </ul>
         </section>
@@ -115,12 +115,14 @@
         flex-grow: 1;
 
         &>nav {
+            position: fixed;
             display: flex;
             flex-direction: column;
-            padding: 2rem;
+            padding: 2rem 0 2rem 2rem;
             min-width: 254px;
             width: 254px;
             font-size: 1rem;
+            height: 100%;
             
             &>ul {
                 position: relative;
@@ -141,11 +143,13 @@
                 align-items: center;
                 justify-content: start;
                 width: 100%;
-                height: 36px;
+                min-height: 36px;
                 border: 0;
                 border-radius: 0.125rem;
                 color: var(--color-text);
                 background-color: transparent;
+                font-size: 1rem;
+                text-align: start;
 
                 &:hover {
                     background-color: var(--color-background-shadow);
@@ -158,6 +162,7 @@
             flex-direction: column;
             flex-grow: 1;
             padding: 2rem;
+            margin: 0 0 0 254px;
 
             &>h1 {
                 font-size: 2rem;
