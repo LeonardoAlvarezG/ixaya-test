@@ -145,6 +145,15 @@
     const emits = defineEmits(['saveShoppingCart','showModal','updateProductQty','deleteProduct'])
 
     function refreshDetails(newValue, oldValue, clear) {
+        if (!props.bought) {
+            if (clear === "clear") {
+                emits('saveShoppingCart', [])
+                products.value = []
+            } else {
+                emits('saveShoppingCart', products.value)
+            }
+        }
+
         productsQty.value = 0
         productsDiscount.value = 0
         productsTotal.value = 0
@@ -157,15 +166,6 @@
 
         productsDiscount.value = '$' + productsDiscount.value.toLocaleString('es-MX')
         productsTotal.value = '$' + productsTotal.value.toLocaleString('es-MX')
-        
-        if (!props.bought) {
-            if (clear === "clear") {
-                emits('saveShoppingCart', [])
-                products.value = []
-            } else {
-                emits('saveShoppingCart', props.order)
-            }
-        }
     }
 
     async function MakeOrder() {
@@ -230,6 +230,7 @@
         })
         products.value = shoppingUpdated
         emits('deleteProduct',product_id)
+        refreshDetails('','','')
     }
 </script>
 

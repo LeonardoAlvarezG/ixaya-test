@@ -46,7 +46,12 @@
     const notificationModal = ref({})
     const showToast = ref("")
 
-    onMounted(() => {
+    onMounted(async() => {
+        await GetOrders()
+
+    })
+
+    async function GetOrders() {
         axios.get(
             "https://sandbox.ixaya.net/api/orders", {
             headers: {
@@ -59,8 +64,7 @@
             orders.value = orderList
         })
         .catch((err) => {console.error(err)})
-
-    })
+    }
 
     function SaveShoppingCart( shopping_cart ) {
         localStorage.setItem("shopping_cart_products", JSON.stringify(shopping_cart))
@@ -71,12 +75,13 @@
         sectionDisplay.value = state
     }
 
-    function ShowToastNotification( info ) {
+    async function ShowToastNotification( info ) {
         notificationModal.value = info
         showToast.value = "show"
         setTimeout(() => {
             showToast.value = ""
         }, 5000)
+        await GetOrders()
     }
 
     function ChangeProductQty(product_updated) {
