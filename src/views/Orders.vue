@@ -9,7 +9,7 @@
         <div>
             <section v-if="sectionDisplay" >
                 <h1>Carrito de Compras</h1>
-                <OrderPreview :order="shoppingCart" :bought="false" />
+                <OrderPreview :order="shoppingCart" :bought="false" @saveShoppingCart="SaveShoppingCart" @showModal="ShowToastNotification" @updateProductQty="ChangeProductQty" @deleteProduct="DeleteProduct" />
             </section>
             <section v-else >
                 <h1>Mis Pedidos</h1>
@@ -20,17 +20,31 @@
             </section>
         </div>
     </section>
+    <div id="notification" :class="showToast" >
+        <div v-if="notificationModal.status === 1" class="container">
+            <div class="icon"><CheckCircle /></div>
+            <p class="message" >¡Gracias por tu compra!</p>
+        </div>
+        <div v-else class="container">
+            <div class="icon"><Error /></div>
+            <p class="message" >Lo sentimos, no pudimos procesar tu compra</p>
+        </div>
+    </div>
 </template>
 
 <script setup>
     import { ref, onMounted } from "vue"
     import axios from "axios"
     import OrderPreview from '../components/OrderPreview.vue'
+    import CheckCircle from "@/components/icons/CheckCircle.vue";
+    import Error from "@/components/icons/Error.vue";
 
     let orderList = []
     const orders = ref([])
     const sectionDisplay = ref(true)
     const shoppingCart = ref(JSON.parse(localStorage.getItem('shopping_cart_products')))
+    const notificationModal = ref({})
+    const showToast = ref("")
 
     onMounted(() => {
         axios.get(
@@ -41,92 +55,6 @@
         )
         .then((res) => {
             orderList = res.data.response
-            orderList = [
-                {
-                    "street_name": "Nombre de calle",
-                    "zip_code": 37000,
-                    "address": "Colonia",
-                    "phone": 477000000,
-                    "state": "Guanajuato",
-                    "city": "León",
-                    "product_list": [
-                        {
-                            "id": "1",
-                            "category": "Tecnología",
-                            "title": "Apple Laptop MacBook Air de de 2020",
-                            "short_description": "Chip M1 de, Pantalla Retina de 13 Pulgadas, 8 GB de RAM, Almacenamiento SSD de 256 GB, Teclado retroiluminado, cámara FaceTime HD y Touch ID - Color Oro",
-                            "description": "Acerca de este artículo\nDevoluciones: Sólo productos dañados, inoperantes al primer uso o sin abrir en caja original sellada.\nBatería para todo el día – Hasta 18 horas de batería según el uso, para hacer mucho más.\nRendimiento extraordinario – Para hacer de todo, desde editar con calidad profesional hasta disfrutar los mejores juegos de acción. El chip M1 de Apple con CPU de 8 núcleos ofrece un rendimiento hasta 3.5 veces más rápido que la generación anterior, con menos consumo de batería.\nMemoria ultrarrápida – 8 GB de memoria unificada para mayor velocidad y fluidez de todo el sistema. Ejecuta de manera rápida y fácil tareas que ocupan mucha memoria, como navegar con varias pestañas abiertas al mismo tiempo o abrir un archivo gráfico de gran tamaño.\nPantalla espectacular – Con una pantalla Retina de 13.3 pulgadas, las imágenes cobran vida con un nivel superior de realismo. Los textos se ven increíblemente nítidos y los colores son más vibrantes.",
-                            "sale_count": "255",
-                            "discount": "1000",
-                            "price": "23000",
-                            "enabled": "1",
-                            "image_url": "https://sandbox.ixaya.net/media/products/71vFKBpKakL._AC_SL1500_.jpg",
-                            "create_date": "2020-11-01 00:00:00",
-                            "last_update": "2023-05-16 23:08:32",
-                            "qty": 2,
-                            "total": "44000"
-                        },
-                        {
-                            "id": "2",
-                            "category": "Tecnología",
-                            "title": "Apple Nuevo MacBook Pro Chip M1",
-                            "short_description": "Apple Nuevo MacBook Pro Chip M1 de (de 13 Pulgadas, 8 GB RAM, 256 GB SSD) - Color Plata (Ultimo Modelo)",
-                            "description": "Acerca de este artículo\nDevoluciones: Sólo productos dañados, inoperantes al primer uso o sin abrir en caja original sellada.\nChip M1 de Apple que permite un gran avance en el rendimiento del CPU, GPU y aprendizaje automático\nLa mayor duración de batería en una Mac: hasta 20 horas para que puedas hacer mucho más\nCPU de 8 núcleos con un rendimiento hasta 2.8 veces más rápido para ejecutar flujos de trabajo a una velocidad increíble\nGPU de hasta 8 núcleos con gráficos hasta 5 veces más veloces para apps y juegos con gráficos avanzados\nNeural Engine de 16 núcleos para un aprendizaje automático avanzado\n8 GB de memoria unificada para que todo sea más rápido y fluido\nAlmacenamiento SSD superrápido para abrir apps y archivos al instante\nPantalla Retina de 13.3 pulgadas con 500 nits de brillo para que disfrutes imágenes vibrantes y un nivel de detalle increíble\nVisítanos directamente en la página de Apple para agregar la cobertura de AppleCare+",
-                            "sale_count": "55",
-                            "discount": "499",
-                            "price": "34499",
-                            "enabled": "1",
-                            "image_url": "https://sandbox.ixaya.net/media/products/71gD8WdSlaL._AC_SL1500_.jpg?v=3",
-                            "create_date": "2020-11-01 00:00:00",
-                            "last_update": "2022-01-11 22:04:45",
-                            "qty": 1,
-                            "total": "34000"
-                        }
-                    ]
-                },
-                {
-                    "street_name": "Nombre de calle 2",
-                    "zip_code": 37000,
-                    "address": "Colonia",
-                    "phone": 477000000,
-                    "state": "Guanajuato",
-                    "city": "León",
-                    "product_list": [
-                        {
-                            "id": "1",
-                            "category": "Tecnología",
-                            "title": "Apple Laptop MacBook Air de de 2020",
-                            "short_description": "Chip M1 de, Pantalla Retina de 13 Pulgadas, 8 GB de RAM, Almacenamiento SSD de 256 GB, Teclado retroiluminado, cámara FaceTime HD y Touch ID - Color Oro",
-                            "description": "Acerca de este artículo\nDevoluciones: Sólo productos dañados, inoperantes al primer uso o sin abrir en caja original sellada.\nBatería para todo el día – Hasta 18 horas de batería según el uso, para hacer mucho más.\nRendimiento extraordinario – Para hacer de todo, desde editar con calidad profesional hasta disfrutar los mejores juegos de acción. El chip M1 de Apple con CPU de 8 núcleos ofrece un rendimiento hasta 3.5 veces más rápido que la generación anterior, con menos consumo de batería.\nMemoria ultrarrápida – 8 GB de memoria unificada para mayor velocidad y fluidez de todo el sistema. Ejecuta de manera rápida y fácil tareas que ocupan mucha memoria, como navegar con varias pestañas abiertas al mismo tiempo o abrir un archivo gráfico de gran tamaño.\nPantalla espectacular – Con una pantalla Retina de 13.3 pulgadas, las imágenes cobran vida con un nivel superior de realismo. Los textos se ven increíblemente nítidos y los colores son más vibrantes.",
-                            "sale_count": "255",
-                            "discount": "1000",
-                            "price": "23000",
-                            "enabled": "1",
-                            "image_url": "https://sandbox.ixaya.net/media/products/71vFKBpKakL._AC_SL1500_.jpg",
-                            "create_date": "2020-11-01 00:00:00",
-                            "last_update": "2023-05-16 23:08:32",
-                            "qty": 2,
-                            "total": "44000"
-                        },
-                        {
-                            "id": "2",
-                            "category": "Tecnología",
-                            "title": "Apple Nuevo MacBook Pro Chip M1",
-                            "short_description": "Apple Nuevo MacBook Pro Chip M1 de (de 13 Pulgadas, 8 GB RAM, 256 GB SSD) - Color Plata (Ultimo Modelo)",
-                            "description": "Acerca de este artículo\nDevoluciones: Sólo productos dañados, inoperantes al primer uso o sin abrir en caja original sellada.\nChip M1 de Apple que permite un gran avance en el rendimiento del CPU, GPU y aprendizaje automático\nLa mayor duración de batería en una Mac: hasta 20 horas para que puedas hacer mucho más\nCPU de 8 núcleos con un rendimiento hasta 2.8 veces más rápido para ejecutar flujos de trabajo a una velocidad increíble\nGPU de hasta 8 núcleos con gráficos hasta 5 veces más veloces para apps y juegos con gráficos avanzados\nNeural Engine de 16 núcleos para un aprendizaje automático avanzado\n8 GB de memoria unificada para que todo sea más rápido y fluido\nAlmacenamiento SSD superrápido para abrir apps y archivos al instante\nPantalla Retina de 13.3 pulgadas con 500 nits de brillo para que disfrutes imágenes vibrantes y un nivel de detalle increíble\nVisítanos directamente en la página de Apple para agregar la cobertura de AppleCare+",
-                            "sale_count": "55",
-                            "discount": "499",
-                            "price": "34499",
-                            "enabled": "1",
-                            "image_url": "https://sandbox.ixaya.net/media/products/71gD8WdSlaL._AC_SL1500_.jpg?v=3",
-                            "create_date": "2020-11-01 00:00:00",
-                            "last_update": "2022-01-11 22:04:45",
-                            "qty": 1,
-                            "total": "34000"
-                        }
-                    ]
-                }
-            ]
 
             orders.value = orderList
         })
@@ -134,8 +62,39 @@
 
     })
 
+    function SaveShoppingCart( shopping_cart ) {
+        localStorage.setItem("shopping_cart_products", JSON.stringify(shopping_cart))
+        shoppingCart.value = JSON.parse(localStorage.getItem('shopping_cart_products'))
+    }
+
     function ShowSection(state) {
         sectionDisplay.value = state
+    }
+
+    function ShowToastNotification( info ) {
+        notificationModal.value = info
+        showToast.value = "show"
+        setTimeout(() => {
+            showToast.value = ""
+        }, 5000)
+    }
+
+    function ChangeProductQty(product_updated) {
+        shoppingCart.value.some(product => {
+            if (product.id === product_updated.id) {
+                product.qty = product_updated.qty
+                return
+            }
+        })
+        localStorage.setItem("shopping_cart_products", JSON.stringify(shoppingCart.value))
+    }
+
+    function DeleteProduct(product_id) {
+        const shoppingUpdated = shoppingCart.value.filter((product) => {
+            return product.id !== product_id
+        })
+        shoppingCart.value = shoppingUpdated
+        localStorage.setItem("shopping_cart_products", JSON.stringify(shoppingCart.value))
     }
 </script>
 
@@ -210,4 +169,51 @@
             }
         }
     }
+
+    div#notification {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        visibility: hidden;
+        min-width: 250px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        top: 90px;
+        font-size: 1rem;
+        transform: translate(-50%, 0);
+
+        &.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
+            animation: fadein 0.5s, fadeout 0.5s 4.5s;
+        }
+        
+    }
+
+@-webkit-keyframes fadein {
+    from {top: 0; opacity: 0;} 
+    to {top: 90px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {top: 0; opacity: 0;} 
+    to {top: 90px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {top: 90px; opacity: 1;} 
+    to {top: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {top: 90px; opacity: 1;}
+    to {top: 0; opacity: 0;}
+}
 </style>

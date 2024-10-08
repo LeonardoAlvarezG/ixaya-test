@@ -8,7 +8,7 @@
                 <p v-else class="disabled" >No Disponible</p>
                 <span class="qty" >
                     Cantidad: 
-                    <select name="product_qty" v-model="selected" >
+                    <select name="product_qty" v-model="selected" :disabled="bought" >
                         <option value="1" selected>1</option>
                         <option value="2">2</option>
                         <option value="3">3</option>
@@ -16,7 +16,7 @@
                         <option value="5">5</option>
                     </select>
                 </span>
-                <button class="delete" >Eliminar</button>
+                <button @click="DeleteProduct" class="delete" :disabled="bought" >Eliminar</button>
             </div>
         </div>
         <div class="price">
@@ -42,15 +42,28 @@
         productSalePrice.value = (Number(props.product?.price) - Number(props.product?.discount)).toLocaleString('es-MX')
         productDiscount.value = `-${Math.floor(Number(props.product?.discount) * 100 / Number(props.product?.price))}%`
         selected.value = props.product?.qty
+        
+        watch(selected, (newValue) => {
+            const productChange = {
+                "id": props.product.id,
+                "qty": Number(newValue)
+            }
+            props.product.qty = Number(newValue)
+            emits('changeQty', productChange)
+        })
     })
 
-    watch(selected, (newValue) => {
-        props.product.qty = newValue
-    })
 
     const props = defineProps({
-        product: Object
+        product: Object,
+        bought: Boolean
     })
+
+    const emits = defineEmits(['changeQty', 'deleteProduct'])
+
+    function DeleteProduct() {
+        emits('deleteProduct', props.product.id)
+    }
 </script>
 
 <style scoped>
@@ -114,6 +127,14 @@
                             width: 40px;
                             height: 100%;
                             cursor: pointer;
+
+                            &:disabled {
+                                background-color: transparent;
+                                cursor: auto;
+                                appearance: none;
+                                -webkit-appearance: none;
+                                -moz-appearance: none;
+                            }
                         }
                     }
                     
@@ -128,8 +149,13 @@
                         cursor: pointer;
                         transition: background-color 0.1s;
 
-                        &:hover {
+                        &:hover:not(:disabled) {
                             background-color: var(--color-background);
+                        }
+
+                        &:disabled {
+                            cursor: auto;
+                            opacity: 0.25;
                         }
                     }
                 }

@@ -1,7 +1,7 @@
 <template>
     <li>
         <div class="card">
-            <button class="addShoppingCart" >
+            <button @click="AddProductShoppingCart" class="addShoppingCart" >
                 <AddShoppingCart />
             </button>
             <img :src=product?.image_url :alt=product?.title loading="lazy" decoding="async" >
@@ -40,7 +40,7 @@
         large: Boolean
     })
 
-    const emits = defineEmits(['openModal'])
+    const emits = defineEmits(['openModal', 'showToast'])
     
     function toggleDetails() {
         if ( props.large ) {
@@ -48,6 +48,35 @@
         } else {
             isDetailsShown.value = !isDetailsShown.value
         }
+    }
+
+    function AddProductShoppingCart() {
+        let local_shopping_cart = JSON.parse(localStorage.getItem("shopping_cart_products"))
+        let isFound = false
+
+        // Buscar existencia de producto
+        local_shopping_cart.some(local_shopping_cart_product => {
+            if (local_shopping_cart_product.id === props.product?.id) {
+                isFound = true
+                local_shopping_cart_product.qty += 1
+                return
+            }
+        });
+
+        if (!isFound) {
+            local_shopping_cart.push({
+                "id": props.product?.id,
+                "short_description": props.product?.short_description,
+                "discount": props.product?.discount,
+                "price": props.product?.price,
+                "enabled": props.product?.enabled,
+                "image_url": props.product?.image_url,
+                "qty" : 1
+            })
+        }
+
+        localStorage.setItem("shopping_cart_products", JSON.stringify(local_shopping_cart))
+        emits('showToast', true)
     }
 </script>
 

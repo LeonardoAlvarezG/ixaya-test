@@ -1,35 +1,53 @@
 <template>
     <div v-if="bought" class="section orders" >
         <section class="products" >
-            My Orders
+            <OrderProductPreview v-for="product in products" :key="product" :product="product" :bought="bought" />
         </section>
         <section class="aside" >
             <span>Detalle de compra</span>
             <div class="products" >
                 <span>Productos</span>
-                <span>Productos</span> 
+                <span>{{ productsQty }}</span> 
             </div>
             <div class="discount" >
                 <span>Descuento</span>
-                <span>Descuento</span>
+                <span>{{ productsDiscount }}</span>
             </div>
             <div class="total" >
                 <span>Total</span>
-                <span>Total</span>
+                <span>{{ productsTotal }}</span>
             </div>
             <div class="details" >
-                <span>{{ order?.street_name }}</span>
-                <span>{{ order?.zip_code }}</span>
-                <span>{{ order?.address }}</span>
-                <span>{{ order?.phone }}</span>
-                <span>{{ order?.state }}</span>
-                <span>{{ order?.city }}</span>
+                <div>
+                    <label for="state">Estado:</label>
+                    <span id="state" >{{ order?.state }}</span>
+                </div>
+                <div>
+                    <label for="city">Ciudad:</label>
+                    <span id="city" >{{ order?.city }}</span>
+                </div>
+                <div>
+                    <label for="address">Colonia:</label>
+                    <span id="address" >{{ order?.address }}</span>
+                </div>
+                <div>
+                    <label for="street_name">Calle:</label>
+                    <span id="street_name" >{{ order?.street_name }}</span>
+                </div>
+                <div>
+                    <label for="zip_code">Código Postal:</label>
+                    <span id="zip_code" >{{ order?.zip_code }}</span>
+                </div>
+                <div>
+                    <label for="phone">Teléfono:</label>
+                    <span id="phone" >{{ phoneFormat }}</span>
+                </div>
             </div>
         </section>
     </div>
     <div v-else class="section shopping_cart" >
         <section class="products" >
-            <OrderProductPreview v-for="product in products" :key="product" :product="product" />
+            <OrderProductPreview v-for="product in products" :key="product" :product="product" :bought="bought" @changeQty="ChangeProductQty" @deleteProduct="DeleteProduct" />
         </section>
         <section class="aside" >
             <span>Resumen de compra</span>
@@ -84,6 +102,7 @@
 
 <script setup>
     import { ref, onMounted, watch } from 'vue'
+    import axios from 'axios';
     import OrderProductPreview from './OrderProductPreview.vue';
 
     const products = ref([])
@@ -104,13 +123,16 @@
         zip_code: null,
         phone: null
     })
+    const phoneFormat = ref('')
 
     onMounted(() => {
         if (props.bought) {
-
+            products.value = props.order?.products
+            refreshDetails('', '', 'false')
+            phoneFormat.value = props.order?.phone.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")
         } else {
             products.value = props.order
-            refreshDetails()
+            refreshDetails('', '', 'false')
         }
         watch(props.order, refreshDetails)
     })
@@ -120,11 +142,13 @@
         bought: Boolean
     })
 
-    function refreshDetails() {
+    const emits = defineEmits(['saveShoppingCart','showModal','updateProductQty','deleteProduct'])
+
+    function refreshDetails(newValue, oldValue, clear) {
         productsQty.value = 0
         productsDiscount.value = 0
         productsTotal.value = 0
-
+        
         products.value.forEach(product => {
             productsQty.value += Number(product.qty)
             productsDiscount.value += Number(product.qty) * Number(product.discount)
@@ -133,9 +157,18 @@
 
         productsDiscount.value = '$' + productsDiscount.value.toLocaleString('es-MX')
         productsTotal.value = '$' + productsTotal.value.toLocaleString('es-MX')
+        
+        if (!props.bought) {
+            if (clear === "clear") {
+                emits('saveShoppingCart', [])
+                products.value = []
+            } else {
+                emits('saveShoppingCart', props.order)
+            }
+        }
     }
 
-    function MakeOrder() {
+    async function MakeOrder() {
         // Validación de campos no vacíos
         errors.value.state = state.value ? null : "Ingrese su estado"
         errors.value.city = city.value ? null : "Ingrese su ciudad"
@@ -150,7 +183,53 @@
         errors.value.zip_code = patternZipCode.test ? null : "Código inválido. Formato: 12345"
         errors.value.phone = patternPhone.test ? null : "Teléfono inválido. Formato: 123-456-7890"
 
-        
+        // Recolección de datos
+        const telephone = Number(phone.value.replace(/-/g, ""))
+        const new_order = {
+            "street_name": street_name.value,
+            "zip_code": Number(zip_code.value),
+            "address": address.value,
+            "phone": telephone,
+            "state": state.value,
+            "city": city.value,
+            "product_list": []
+        }
+
+        products.value.forEach(product => {
+            new_order.product_list.push({
+                "product_id": Number(product.id),
+                "qty": Number(product.qty)
+            })
+        })
+
+        // Solicitud de creación de orden
+        axios.post(
+            "https://sandbox.ixaya.net/api/orders/create", new_order, {
+                headers: {
+                'X-API-KEY': '8g84woskwokcwk84c440wkkcowg48ww84o88s8cg'
+                }
+            }
+        )
+        .then((res) => {
+            emits('showModal',res.data)
+            refreshDetails('','',"clear")
+        })
+        .catch((err) => {
+            console.error(err)
+            emits('showModal',err)
+        })
+    }
+
+    function ChangeProductQty(product_updated) {
+        emits('updateProductQty',product_updated)
+    }
+
+    function DeleteProduct(product_id) {
+        const shoppingUpdated = products.value.filter((product) => {
+            return product.id !== product_id
+        })
+        products.value = shoppingUpdated
+        emits('deleteProduct',product_id)
     }
 </script>
 
@@ -195,6 +274,28 @@
                         margin: 1rem 0;
                     }
 
+                    &.details {
+                        display: flex;
+                        flex-direction: column;
+                        flex-grow: 1;
+                        margin: 1rem 0 0;
+                        gap: 1rem;
+                        justify-content: start;
+
+                        &>div {
+                            display: flex;
+                            flex-direction: row;
+                            align-items: center;
+                            justify-content: space-between;
+                            width: 100%;
+                            gap: 1rem;
+
+                            &>span {
+                                flex-grow: 1;
+                                text-align: end;
+                            }
+                        }
+                    }
                 }
 
                 &>form.address {

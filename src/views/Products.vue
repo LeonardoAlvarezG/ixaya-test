@@ -27,17 +27,24 @@
             <h1>Productos</h1>
             <h2>{{ departmentSelected }}</h2>
             <ul>
-                <ProductCard v-for="product in products" :key="product" :product="product" :large="true" @openModal="ShowModal" />
+                <ProductCard v-for="product in products" :key="product" :product="product" :large="true" @openModal="ShowModal" @showToast="ShowToastNotification" />
             </ul>
         </section>
     </section>
+    <div id="notification" :class="showToast" >
+        <div class="container">
+            <div class="icon"><CheckCircle /></div>
+            <p class="message" >¡Producto agregado al carrito!</p>
+        </div>
+    </div>
 </template>
 
 <script setup>
-    import { ref, onMounted, useTemplateRef } from "vue"
+    import { ref, onMounted } from "vue"
     import axios from "axios"
     import ProductCard from '../components/ProductCard.vue'
     import Close from "@/components/icons/Close.vue";
+    import CheckCircle from "@/components/icons/CheckCircle.vue";
 
     const products = ref([])
     const departments = ref(new Set())
@@ -49,6 +56,7 @@
     const productSalePrice = ref(null)
     const productDiscount = ref(null)
     const departmentSelected = ref("Todos los departamentos")
+    const showToast = ref("")
 
     onMounted(() => {
         axios.get(
@@ -94,7 +102,6 @@
     }
 
     function ShowModal( product ) {
-        // console.info(product)
         productModal.value = product
         productPrice.value = Number(productModal.value?.price).toLocaleString('es-MX')
         productSalePrice.value = (Number(productModal.value?.price) - Number(productModal.value?.discount)).toLocaleString('es-MX')
@@ -105,6 +112,13 @@
     function HideModal() {
         dialogProduct.value.close()
 
+    }
+
+    function ShowToastNotification() {
+        showToast.value = "show"
+        setTimeout(() => {
+            showToast.value = ""
+        }, 5000)
     }
 </script>
 
@@ -183,5 +197,52 @@
                 gap: 1rem;
             }
         }
+    }
+
+    div#notification {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        visibility: hidden;
+        min-width: 250px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        top: 90px;
+        font-size: 1rem;
+        transform: translate(-50%, 0);
+
+        &.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
+            animation: fadein 0.5s, fadeout 0.5s 4.5s;
+        }
+        
+    }
+
+    @-webkit-keyframes fadein {
+        from {top: 0; opacity: 0;} 
+        to {top: 90px; opacity: 1;}
+    }
+
+    @keyframes fadein {
+        from {top: 0; opacity: 0;} 
+        to {top: 90px; opacity: 1;}
+    }
+
+    @-webkit-keyframes fadeout {
+        from {top: 90px; opacity: 1;} 
+        to {top: 0; opacity: 0;}
+    }
+
+    @keyframes fadeout {
+        from {top: 90px; opacity: 1;}
+        to {top: 0; opacity: 0;}
     }
 </style>
